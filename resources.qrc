@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>LoginWindow.qml</file>
+    </qresource>
+    <qresource prefix="/fonts"/>
+</RCC>
