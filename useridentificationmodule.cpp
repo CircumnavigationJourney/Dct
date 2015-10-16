@@ -3,31 +3,45 @@
 UserIdentificationModule::UserIdentificationModule(QObject *parent) : QObject(parent), engine(nullptr)
 {
     //engine = nullptr;
-    fileName = "\\userdb.dctdb";
+    fileName = "/userdb.dctdb";
 #ifdef QT_DEBUG
     directory = "D:\\DRIVE\\Files\\Qt_Projects\\UserIdentificationForDicty";
 #else
     directory = QApplication::applicationDirPath();
 #endif
     loadData();
+    qDebug() << this->metaObject()->className() << " created";
 }
 
 UserIdentificationModule::~UserIdentificationModule()
 {
+    if(!engine.isNull()){
+        component->deleteLater();
+        windowObj->deleteLater();
+        engine.clear();
+    }
+    qDebug() << this->metaObject()->className() << " deleted";
+
 }
 
 void UserIdentificationModule::createWindow(){
-    if(engine == nullptr){
-        engine = new QQmlEngine;
-        QQmlComponent *component = new QQmlComponent(engine);
-
+    if(engine.isNull()){
+        engine = QSharedPointer<QQmlEngine>(new QQmlEngine);
+        //component = QSharedPointer<QQmlComponent>(new QQmlComponent(engine));
+        component = new QQmlComponent(engine.data());
+//        QQmlContext *context = engine->rootContext();
+        engine.data()->rootContext()->setContextProperty("userListModel", &allUsersData);
         component->loadUrl(QUrl(QStringLiteral("qrc:/LoginWindow.qml")));
         Q_ASSERT(component->isReady());
         windowObj = component->create();
+        windowObj->setParent(this);
+        //engine.data()->setObjectOwnership(windowObj, QQmlEngine::CppOwnership);
         loginWindow = qobject_cast<QQuickWindow *> (windowObj);
         loginWindow->setFlags(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);
         connect(loginWindow, SIGNAL(checkUser(QString, QString, int)), SLOT(checkUser(QString,QString,int)));
-        connect(this,SIGNAL(setReplyText(QVariant)), loginWindow, SLOT(getErrorMessage(QVariant)));
+        connect(this, SIGNAL(setReplyText(QVariant)), loginWindow, SLOT(getErrorMessage(QVariant)));
+//        connect(loginWindow, SIGNAL(canceled()),SLOT(destroyWindow()));
+        connect(loginWindow, SIGNAL(closing(QQuickCloseEvent*)), SLOT(destroyWindow(QQuickCloseEvent*)));
         loginWindow->show();
     }
     else loginWindow->show();
@@ -139,7 +153,22 @@ QString UserIdentificationModule::checkUserReply(int reply){
     return QObject::tr("ERROR, unexpected behavior detected. Please contact soft vendor");//TODO logs needed
 }
 
-void UserIdentificationModule::destroyWindow(){
+void UserIdentificationModule::destroyWindow(QQuickCloseEvent*event){
 
-    if(engine != nullptr) engine->deleteLater();
+    if(!engine.isNull()) {
+        qDebug() << "loginWindow destruction";
+        disconnect(loginWindow, SIGNAL(checkUser(QString, QString, int)), this, SLOT(checkUser(QString,QString,int)));
+        disconnect(this, SIGNAL(setReplyText(QVariant)), loginWindow, SLOT(getErrorMessage(QVariant)));
+//        connect(loginWindow, SIGNAL(canceled()),SLOT(destroyWindow()));
+        disconnect(loginWindow, SIGNAL(closing(QQuickCloseEvent*)), this, SLOT(destroyWindow(QQuickCloseEvent*)));
+        delete component;
+      //delete windowObj;
+//        loginWindow->deleteLater();
+        engine.data()->clearComponentCache();
+        engine.clear();
+        qDebug() << "engine pointer isNull :" << engine.isNull();
+    }
+    this->deleteLater();
 }
+
+

@@ -13,8 +13,12 @@
 #include <QDir>
 #include <QCryptographicHash>
 #include <QVariant>
+#include <QQmlContext>
+#include <QVariant>
+#include <QSharedPointer>
 
-#include "user.h"
+#include "userlistmodel.h"
+
 class UserIdentificationModule : public QObject
 {
     Q_OBJECT
@@ -30,10 +34,15 @@ private:
         UserIsAlreadyExists = -2,
         WrongPassword = -3
     };
-    QList<User> allUsersData;
-    QQmlEngine *engine = nullptr;
+
+    UserListModel allUsersData;
+    QSharedPointer<QQmlEngine> engine;
+    QQmlComponent *component;
     QObject *windowObj;
     QQuickWindow *loginWindow;
+//    QSharedPointer<QQmlComponent> component;
+//    QSharedPointer<QObject> windowObj;
+//    QSharedPointer<QQuickWindow> loginWindow;
     QString directory;
     QString fileName;
     void createWindow();
@@ -52,7 +61,7 @@ public:
 signals:
     void setReplyText(QVariant replyText);
 private slots:
-    void destroyWindow();
+    void destroyWindow(QQuickCloseEvent *event);
     void checkUser(QString name, QString password, int windowForm);
 public slots:
 

@@ -1,6 +1,9 @@
 <RCC>
     <qresource prefix="/">
         <file>LoginWindow.qml</file>
+        <file>DictyQMLComponents/Scrollbar.qml</file>
+        <file>DictyQMLComponents/Button.qml</file>
+        <file>DictyQMLComponents/ButtonStyle.qml</file>
     </qresource>
     <qresource prefix="/fonts"/>
 </RCC>

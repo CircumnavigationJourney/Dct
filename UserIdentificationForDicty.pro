@@ -7,7 +7,7 @@
 QT += qml quick declarative
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
-
+CONFIG += c++11
 TARGET = UserIdentificationForDicty
 TEMPLATE = app
 
@@ -15,12 +15,17 @@ TEMPLATE = app
 SOURCES += main.cpp\
         widget.cpp\
 useridentificationmodule.cpp \
-    user.cpp
+    user.cpp \
+    userlistmodel.cpp
 
 HEADERS  += widget.h \
     useridentificationmodule.h \
-    user.h
-CONFIG += c++11
-
+    user.h \
+    userlistmodel.h
 RESOURCES += \
     resources.qrc
+OTHER_FILES += LoginWindow.qml \
+DictyQMLComponents/*
+DISTFILES += \
+    DictyQMLComponents/Button.qml \
+    DictyQMLComponents/ButtonStyle.qml
