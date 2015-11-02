@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>main.qml</file>
+        <file>wordTable.qml</file>
+    </qresource>
+</RCC>
