@@ -44,7 +44,7 @@ private:
         UserIsAlreadyExists = -2,
         WrongPassword = -3
     };
-    User *currUser = nullptr;
+    User currUser;
     UserListModel allUsersData;
     QSharedPointer<QQmlEngine> engine;
     //QQmlEngine *engine;
@@ -57,8 +57,6 @@ private:
     QString directory;
     QString fileName;
     void createWindow(Behavior behavior, QString userName);
-    bool loadData();
-    bool saveData();
     int registerNewUser(const QString &name, const QString &password);
     int loginUser(const QString &name, const QString &password);
     int chagnePassword(const QString &name, const QString &password);
@@ -66,6 +64,8 @@ private:
     QString encrypt(const QString &sourceStr) const;
     QString checkUserReply(int reply);
 public:
+    bool loadData();
+    bool saveData();
     Q_INVOKABLE bool isRegistered(const QString &name);
     User getUser();
     explicit UserIdentificationModule(QObject *parent = 0);

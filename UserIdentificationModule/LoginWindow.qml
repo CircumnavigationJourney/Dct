@@ -16,7 +16,12 @@ Window {
     width:  350//Units.dp(350)
     height: 550//Units.dp(550)
     Component.onCompleted: Units.multiplier = 2.3
-    flags: Qt.WA_TranslucentBackground | /*Qt.WA_DeleteOnClose |*/ Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint | Qt.WA_OpaquePaintEvent | Qt.WA_NoSystemBackground
+    flags: Qt.WA_TranslucentBackground |
+//           Qt.WA_DeleteOnClose |
+           Qt.FramelessWindowHint |
+           Qt.WindowStaysOnTopHint |
+           Qt.WA_OpaquePaintEvent |
+           Qt.WA_NoSystemBackground
     visible: true
     property int currentForm
     //    FontLoader { id: hindi
@@ -54,6 +59,12 @@ Window {
         qsTr("Wrong password! try another one..."), //это точная фраза из С++ по которой идет сравнение в snackbar TODO : переписать на более гибкий и эффективный лад
         qsTr("User is not Found...") //это точная фраза из С++ по которой идет сравнение в snackbar TODO : переписать на более гибкий и эффективный лад
     ]
+
+    property var changeWindowFormButtonText: [
+        qsTr("Sign In"),
+        qsTr("Sign Up"),
+        qsTr("Password Changing")
+    ]
     //    property string atLeastOneCharN: qsTr("At least one character needed")
     //    property string userNameIsAlreadyR: qsTr("The name is already registered. Try another one or Sign up...")
     //    property string passwordIsNeeded: qsTr("Password is needed")
@@ -79,9 +90,12 @@ Window {
         }
 
     }
+    //param needed to initialize window with concrete form
+    //for example window can have Login form (param = 0), Registration form (param = 1), Change Password form (param = 2)
     function getInitParameter(param, name){
         currentForm = param;
         userName.text = name;
+        console.log("current form: " + param + "; user name:" + name);
         if(currentForm === 0)
             setSignInState();
         else if (currentForm === 1){
@@ -96,6 +110,7 @@ Window {
             setPasswordChangingState()
         }
     }
+    //showing error message with animation
     function getErrorMessage(text){
         windowFrame.border.color = color_error
         snackbar.backgroundColor = color_error
@@ -103,42 +118,56 @@ Window {
         snackbar.open(text);
     }
 
+    //window form changing
     function changeCurrentState(){
-        //if(changeWindowStateAnimation.running === false)
-        if(currentForm === 1){
-            setSignUpState();
-        }
-        else if (currentForm === 0){
+        //if window form is PasswrdChanging or SignUp make it SignIn
+        if(currentForm === 1 || currentForm === 2){
             setSignInState();
         }
-        else if (currentForm === 2){
+        else if (currentForm === 0) {
             setSignUpState();
         }
     }
 
-    function setSignUpState(){
+    function setSignInState(){
+        currentForm = 0; // 0 - Sign in; 1 - Sign up; 2 - Password Change
+        snackbar.opened = false;
         userName.hasError = 0
-        currentForm = 0;
         userName.enabled = true
-
-        buttonSignIn.text = qsTr("Sign up");
+        buttonChangeWindowForm.text = changeWindowFormButtonText[1]; // 0 - Sign in; 1 - Sign up; 2 - Password Change
         password_2.opacity = 0.0
         password_2.enabled = false;
         //changeWindowStateAnimation.start()
     }
-    function setSignInState(){
-        userName.hasError = UImodule.isRegistered(userName.text)
-        currentForm = 1;
-        buttonSignIn.text = qsTr("Sign in");
+    function setSignUpState(){
+        currentForm = 1; // 0 - Sign in; 1 - Sign up; 2 - Password Change
+        snackbar.opened = false;
+        userName.enabled = true
+        checkForAlreadyRegistered();
+        buttonChangeWindowForm.text = changeWindowFormButtonText[0]; // 0 - Sign in; 1 - Sign up; 2 - Password Change
         password_2.opacity = 1.0
         password_2.enabled = true;
         //changeWindowStateAnimation.start()
     }
-    function setPasswordChangingState(){
-        currentForm = 2;
-        userName.enabled = false;
-    }
 
+    function setPasswordChangingState(){
+        if(userName.text === "") {
+            snackbar.open(errorMessage[0]);
+            setSignInState();
+            return;
+        }
+        currentForm = 2; // 0 - Sign in; 1 - Sign up; 2 - Password Change
+        userName.enabled = false;
+        password_2.opacity = 1.0
+        password_2.enabled = true;
+        buttonChangeWindowForm.text = changeWindowFormButtonText[2]; // 0 - Sign in; 1 - Sign up; 2 - Password Change
+    }
+    function  checkForAlreadyRegistered(){
+        userName.wasRegistered = UImodule.isRegistered(userName.text)
+        userName.hasError = (currentForm === 1) ? userName.wasRegistered : 0
+        if(userName.hasError) getErrorMessage(errorMessage[1])
+        else if(snackbar.opened) snackbar.opened = false;
+    }
     signal checkUser(string userName, string password, int currentForm)
     //signal canceled()
     //    onActiveChanged: {
@@ -151,8 +180,7 @@ Window {
     onOpacityChanged: {
 
         if(loginWindow.opacity === 0) {
-
-            loginWindow.close()
+            loginWindow.close();
         }
     }
 
@@ -192,8 +220,7 @@ Window {
         Behavior on opacity {
             NumberAnimation { duration: changeStateDuratin; /*easing.type: usersLoginsView.opened ? Easing.InCubic : Easing.OutCubic*/ }
         }
-        //------------------------------------------------
-        //1 is registration 0 is Login
+
         MouseArea{
             id: track
             anchors.fill: parent
@@ -207,10 +234,14 @@ Window {
                 loginWindow.y += delta.y
             }
         }
+        //------------------------------------------------
+        //1 is Registration, 0 is Login
         Dicty.Button {
-            id: buttonSignIn
+            id: buttonChangeWindowForm
             elevation: 1
-            text: (currentForm === 1) ? qsTr("Sign in") : (currentForm === 0) ? qsTr("Sign up") : qsTr("Password Changing") // TODO curren FORM password change check for errors
+            text: (currentForm === 1) ? changeWindowFormButtonText[0] :
+                  (currentForm === 0) ? changeWindowFormButtonText[1] :
+                                        changeWindowFormButtonText[2]
             backgroundColor: color_main
             height: 100 /*Units.dp(100)*/
             width: loginWindow.width - windowBorderWidth*2
@@ -240,7 +271,7 @@ Window {
             //font.weight: light
             font.family: mainFont
             anchors {
-                top: buttonSignIn.bottom
+                top: buttonChangeWindowForm.bottom
                 topMargin: 32
                 horizontalCenter: parent.horizontalCenter
             }
@@ -248,10 +279,7 @@ Window {
             errorColor: color_error
             focus: true
             onTextChanged: {
-                userName.wasRegistered = UImodule.isRegistered(userName.text)
-                hasError = (currentForm === 1) ? userName.wasRegistered : 0
-                if(hasError) getErrorMessage(errorMessage[1])
-                else if(snackbar.opened) snackbar.opened = false;
+                checkForAlreadyRegistered();
             }
 
         }
@@ -295,7 +323,6 @@ Window {
             Behavior on opacity { NumberAnimation {duration: 1000} }
         }
 
-        //через кнопку внутри сообщения об ошибке можно добавить функции доступа к базе пользователей и возможность изменить пароль
         View {
             id: snackbar
             enabled: opened ? true : false
@@ -332,6 +359,7 @@ Window {
                 opened = true;
                 timer.restart();
             }
+            //TODO it's fast hack. good architercture design needed (control point is errorMessage text... bad idea)
             onTextChanged: {
                 if(text === errorMessage[3]){
                     buttonText = "Change Password"
@@ -430,7 +458,7 @@ Window {
             id: okButton
             text: qsTr("Ok")
             width: loginWindow.width/2 - windowBorderWidth /*(userName.width/2) - (buttMargin/2)*/
-            height: buttonSignIn.height /*userName.height*/
+            height: buttonChangeWindowForm.height /*userName.height*/
             backgroundColor: color_nearBackground
             dct_radius: 0
             dct_fontPixelSize: mainFontSize
@@ -505,8 +533,8 @@ Window {
 
             onClicked: {
                 //passwordChangedConfirmDialog.close()
-                if(currentForm === 2) {changeCurrentState(); return;}
-                else
+//                if(currentForm === 2) {changeCurrentState(); return;}
+//                else
                     onCloseAnimation.start()
                 //loginWindow.close()
                 //canceled()
@@ -592,8 +620,8 @@ Window {
         Rectangle {
             id: registeredUsers
             width: loginWindow.width
-            height: buttonSignIn.height
-            color: buttonSignIn.backgroundColor
+            height: buttonChangeWindowForm.height
+            color: buttonChangeWindowForm.backgroundColor
             //            x: parent.x+windowFrame.border.width
             //            y: parent.y+windowFrame.border.width
             z: usersLoginsView.opened ? 5 : -5
@@ -628,7 +656,7 @@ Window {
                 //font.weight: light
                 font.family: mainFont
                 text: qsTr("Registered Users")
-                color: buttonSignIn.textColor
+                color: buttonChangeWindowForm.textColor
             }
             MouseArea{
                 anchors.fill: parent
@@ -701,20 +729,25 @@ Window {
             id: scrollArea
             flickableItem: flickable
             //fillColor: color_main
-
         }
     }
+PopupBase {
 
-    Dialog {
-        id: passwordChangedConfirmDialog
-        property string message: qsTr("Password for ") + userName.text + qsTr(" was Changed")
-        title: qsTr("Password Changing Status")
-        text: passwordChangedConfirmDialog.message
-        hasActions: true
-        onAccepted: {
-            checkUser(userName.text, password_1.text, currentForm);
-        }
-    }
+    id: passwordChangedConfirmDialog
+}
+//    Dialog {
+//        id: passwordChangedConfirmDialog
+//        property string message: qsTr("Password for ") + userName.text + qsTr(" was Changed")
+//        title: qsTr("Password Changing Status")
+//        text: passwordChangedConfirmDialog.message
+//        //hasActions: true
+//        onAccepted: {
+//            checkUser(userName.text, password_1.text, currentForm);
+//        }
+////        onShowingChanged: {
+////         log_reg_View.enabled = passwordChangedConfirmDialog.showing ? false : true
+////        }
+//    }
 }
 
 //    Loader {

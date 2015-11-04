@@ -7,9 +7,14 @@ int main(int argc, char *argv[])
     a.setQuitOnLastWindowClosed(true);
     //Widget w;
     //w.show();
+    User user;
     UserIdentificationModule *module = new UserIdentificationModule;
-    User user = module->getUser();
-    User user2 = module->getUser();
+    module->loadData();
+    if(user.isNull()){
+        user = module->getUser();
+    }
+
+    //User user2 = module->getUser();
     delete module;
     //module1.getUser();
 //    module2.getUser();
@@ -17,7 +22,5 @@ int main(int argc, char *argv[])
 //    module4.getUser();
 //    module5.getUser();
 
-
-    qDebug() << "here!";
-    return a.exec();
+    //return a.exec();
 }

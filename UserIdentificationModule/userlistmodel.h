@@ -28,7 +28,7 @@ public:
 
     const User& at(int i) const { return userList.at(i); }
     void removeAt(int i){ userList.removeAt(i);}
-    int size() { return userList.size(); }
+    int size() const { return userList.size(); }
     inline bool isEmpty() const { return userList.isEmpty(); }
     void append(const User &user);
     const User& last() const { Q_ASSERT(!isEmpty()); return userList.at(userList.size() - 1); }
