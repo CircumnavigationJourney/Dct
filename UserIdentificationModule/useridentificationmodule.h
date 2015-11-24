@@ -20,14 +20,20 @@
 #include <QFuture>
 #include <QtConcurrent/QtConcurrentRun>
 
-#include "userlistmodel.h"
+#include "useraccountmanager.h"
 //задача этого модуля - идентифицировать пользователя
 //возможности :
 //              1 регистрация нового пользователя
 //              2 логин
 //              3 смена пароля
 // метод getUser возвращает копию объекта текущего пользователя
+//в процессе разработки появилась идея разделить этот класс на несколько
+//userAccountManager для работы чисто с пользовательскими данными
+//и чисто функционал идентификации пользователя в рамках данного класса
+//(создание всех необходимых окон и загрузка всех необходимых для этого файлов)
 
+//TODO split this class in two or more
+//(userAccountManager - class that can add and delete users and manage some users data)
 class UserIdentificationModule : public QObject
 {
     Q_OBJECT
@@ -37,7 +43,9 @@ public:
         Registration = 1,
         ChangePassword = 2
     };
+    static int objectCount;
 private:
+    //positive reply is the user id, negative replies is about error
     enum class Reply {
         //Success = 0,
         CantFindUser = -1,
@@ -55,8 +63,9 @@ private:
 //    QSharedPointer<QObject> windowObj;
 //    QSharedPointer<QQuickWindow> loginWindow;
     QString directory;
+    QString usersSubDir;
     QString fileName;
-    void createWindow(Behavior behavior, QString userName);
+    void createWindow(QString userName);
     int registerNewUser(const QString &name, const QString &password);
     int loginUser(const QString &name, const QString &password);
     int chagnePassword(const QString &name, const QString &password);
@@ -72,7 +81,7 @@ public:
     ~UserIdentificationModule();
 signals:
     void windowDestroyed();
-    void currentUserChanged();
+    void closeWindow();
     void setReplyText(QVariant replyText);
     void initialize(QVariant beh, QVariant name);
 private slots:

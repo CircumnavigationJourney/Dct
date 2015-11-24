@@ -2,27 +2,25 @@ import QtQuick 2.3
 import Material 0.1
 import Material.ListItems 0.1 as ListItem
 import "DictyQMLComponents" as Dicty
-//import Material.Button as Button
-//import QtQuick.Controls 1.2
-//import QtQuick.Layouts 1.1
-//import QtQuick.Window 2.2 as QtQuick
-//import Material.Extras 0.1
-import QtGraphicalEffects 1.0
-//import QtQuick.Controls.Styles 1.3
-//import QtQuick.Controls 1.3 as Controls
-
-Window {
+//import QtGraphicalEffects 1.0
+//modification to OverlayLayer z: paramerter (modification in qml-material is a hack)
+//TODO userName lenght
+Dicty.Window {
+    clientSideDecorations: true
     id: loginWindow
+    visible: true
     width:  350//Units.dp(350)
     height: 550//Units.dp(550)
     Component.onCompleted: Units.multiplier = 2.3
-    flags: Qt.WA_TranslucentBackground |
+
+//    flags: Qt.WA_TranslucentBackground |
 //           Qt.WA_DeleteOnClose |
-           Qt.FramelessWindowHint |
-           Qt.WindowStaysOnTopHint |
-           Qt.WA_OpaquePaintEvent |
-           Qt.WA_NoSystemBackground
-    visible: true
+//           Qt.FramelessWindowHint |
+//           Qt.WindowStaysOnTopHint |
+//           Qt.WA_OpaquePaintEvent |
+//           Qt.WA_NoSystemBackground |
+//           Qt.WindowSystemMenuHint  |
+//           Qt.WindowMinMaxButtonsHint
     property int currentForm
     //    FontLoader { id: hindi
     //        source: "/fonts/Suwannaphum.ttf";
@@ -38,6 +36,14 @@ Window {
     property color color_highlight: Palette.colors["blue"]["500"]
     property color color_error: Palette.colors["red"]["500"]
 
+//    PageStack {
+//        id: __pageStack
+//        anchors.fill: parent
+
+////        onPushed: __toolbar.push(page)
+////        onPopped: __toolbar.pop(page)
+////        onReplaced: __toolbar.replace(page)
+//    }
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     //    property color color_background: "#E0E4CC"
     //    property color color_nearBackground: "#A7DBD8"
@@ -45,8 +51,7 @@ Window {
     //    property color color_highlight: "#F38630"
     //    property color color_error: "#F38630"
     //+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    property string mainFont: "Roboto"/*"Noto Sans Historic"*/
+    property string mainFont: "Arial"/*"Noto Sans Historic"*/
     property real mainFontSize: 17 /*loginWindow.width/13*/ /*Units.dp(27)*/
     property real largeFontSize: 27
     property real spacing: 27
@@ -107,7 +112,7 @@ Window {
                 setSignInState();
             }
             else
-            setPasswordChangingState()
+                setPasswordChangingState()
         }
     }
     //showing error message with animation
@@ -137,7 +142,6 @@ Window {
         buttonChangeWindowForm.text = changeWindowFormButtonText[1]; // 0 - Sign in; 1 - Sign up; 2 - Password Change
         password_2.opacity = 0.0
         password_2.enabled = false;
-        //changeWindowStateAnimation.start()
     }
     function setSignUpState(){
         currentForm = 1; // 0 - Sign in; 1 - Sign up; 2 - Password Change
@@ -147,7 +151,6 @@ Window {
         buttonChangeWindowForm.text = changeWindowFormButtonText[0]; // 0 - Sign in; 1 - Sign up; 2 - Password Change
         password_2.opacity = 1.0
         password_2.enabled = true;
-        //changeWindowStateAnimation.start()
     }
 
     function setPasswordChangingState(){
@@ -168,22 +171,24 @@ Window {
         if(userName.hasError) getErrorMessage(errorMessage[1])
         else if(snackbar.opened) snackbar.opened = false;
     }
-    signal checkUser(string userName, string password, int currentForm)
-    //signal canceled()
-    //    onActiveChanged: {
-    //        if(active){
-    //            scrollArea.dct_active = true
 
-    //        }
-    //        else scrollArea.dct_active = false;
-    //    }
+    function closeWindow(){
+        onCloseAnimation.start()
+    }
+
+    signal checkUser(string userName, string password, int currentForm)
+
+
     onOpacityChanged: {
 
         if(loginWindow.opacity === 0) {
             loginWindow.close();
         }
     }
+    //part of princeple of creating Overlayer (for example to block any events from underlayers when Dialog called)
+initialPage: Page{
 
+    anchors.fill: parent
     Rectangle{
         id: windowFrame
         color: color_background
@@ -196,6 +201,11 @@ Window {
         shortcut: "Ctrl+T"
         onTriggered: changeThemme()
     }
+    Action {
+        shortcut: "Alt+F4"
+        onTriggered: closeWindow()
+    }
+
     //    Action {
     //     shortcut: "Alt + F4"
     //     onTriggered: onCloseAnimation.start()
@@ -240,8 +250,8 @@ Window {
             id: buttonChangeWindowForm
             elevation: 1
             text: (currentForm === 1) ? changeWindowFormButtonText[0] :
-                  (currentForm === 0) ? changeWindowFormButtonText[1] :
-                                        changeWindowFormButtonText[2]
+                                        (currentForm === 0) ? changeWindowFormButtonText[1] :
+                                                              changeWindowFormButtonText[2]
             backgroundColor: color_main
             height: 100 /*Units.dp(100)*/
             width: loginWindow.width - windowBorderWidth*2
@@ -533,9 +543,9 @@ Window {
 
             onClicked: {
                 //passwordChangedConfirmDialog.close()
-//                if(currentForm === 2) {changeCurrentState(); return;}
-//                else
-                    onCloseAnimation.start()
+                //                if(currentForm === 2) {changeCurrentState(); return;}
+                //                else
+                loginWindow.closeWindow();
                 //loginWindow.close()
                 //canceled()
                 // snackbar.open("sjlfjfkljd skldjflksd j skljd skdj lskdj skldj lksdj sdk jsdklj !!! lkdjfldkj kl!!! テキストを折り返します")
@@ -553,7 +563,7 @@ Window {
         SequentialAnimation {
             id: onCloseAnimation
             running: false
-            NumberAnimation { target: loginWindow; property: "opacity"; to: 0;  easing.type: Easing.Bezier; duration: 1000}
+            NumberAnimation { target: loginWindow; property: "opacity"; to: 0;  easing.type: Easing.Bezier; duration: 700}
         }
         SequentialAnimation {
             id: nameErrorAnimation
@@ -731,23 +741,24 @@ Window {
             //fillColor: color_main
         }
     }
-PopupBase {
-
-    id: passwordChangedConfirmDialog
 }
-//    Dialog {
-//        id: passwordChangedConfirmDialog
-//        property string message: qsTr("Password for ") + userName.text + qsTr(" was Changed")
-//        title: qsTr("Password Changing Status")
-//        text: passwordChangedConfirmDialog.message
-//        //hasActions: true
-//        onAccepted: {
-//            checkUser(userName.text, password_1.text, currentForm);
-//        }
-////        onShowingChanged: {
-////         log_reg_View.enabled = passwordChangedConfirmDialog.showing ? false : true
-////        }
-//    }
+    //PopupBase {
+
+    //    id: passwordChangedConfirmDialog
+    //}
+    Dialog {
+        id: passwordChangedConfirmDialog
+        property string message: qsTr("Password for ") + userName.text + qsTr(" will Changed") //TODO check translation
+        title: qsTr("Password Changing Status")
+        text: passwordChangedConfirmDialog.message
+        //hasActions: true
+        onAccepted: {
+            checkUser(userName.text, password_1.text, currentForm);
+        }
+        //        onShowingChanged: {
+        //         log_reg_View.enabled = passwordChangedConfirmDialog.showing ? false : true
+        //        }
+    }
 }
 
 //    Loader {

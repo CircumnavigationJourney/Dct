@@ -4,6 +4,7 @@
 #include <QDataStream>
 #include <QVariant>
 #include <QDebug>
+#include <QMap>
 
 #include "user.h"
 
@@ -11,6 +12,7 @@ class UserListModel : public QAbstractItemModel
 {
 private:
     QList<User> userList;
+    QMap<QString, int> lastActiveUser; // QMap <SystemUserName, lastActiveUserID for SystemUserName>
     const int COLUMN_COUNT = 1;
     enum class ColumnNames{
         Name
@@ -26,6 +28,9 @@ public:
     QHash<int, QByteArray> roleNames() const;
     QModelIndex parent(const QModelIndex &child) const;
 
+    User findUser(int ID);
+    User getLastActiveUser();
+    void setLastActiveUser(int ID);
     const User& at(int i) const { return userList.at(i); }
     void removeAt(int i){ userList.removeAt(i);}
     int size() const { return userList.size(); }

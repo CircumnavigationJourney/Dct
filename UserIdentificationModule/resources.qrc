@@ -4,6 +4,7 @@
         <file>DictyQMLComponents/Scrollbar.qml</file>
         <file>DictyQMLComponents/Button.qml</file>
         <file>DictyQMLComponents/ButtonStyle.qml</file>
+        <file>DictyQMLComponents/Window.qml</file>
     </qresource>
     <qresource prefix="/fonts"/>
 </RCC>
